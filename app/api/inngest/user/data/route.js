@@ -1,7 +1,7 @@
 import connectDB from "@/config/db";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-
+import User from "@/models/User";
 export async function GET(request) {
     try {
         const { userId } = getAuth(request)
