@@ -1,5 +1,5 @@
 'use client'
-import { ToastContainer } from 'react-toastify';
+
 import { productsDummyData, userDummyData } from "@/assets/assets";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
@@ -28,6 +28,19 @@ export const AppContextProvider = (props) => {
 
     const fetchProductData = async () => {
         setProducts(productsDummyData);
+        try {
+	    const {data} = await axios.get('/api/product/list')
+	    if (data.success){
+
+	        setProducts(data.products)
+  	    }else{
+		    toast.error(data.message)
+	    }
+	    }catch (error) {
+	        toast.error(error.message)
+
+  	    }
+
     };
 
     const fetchUserData = async () => {
@@ -58,7 +71,17 @@ export const AppContextProvider = (props) => {
             cartData[itemId] = 1;
         }
         setCartItems(cartData);
-    };
+        
+        if (user) {
+            try {
+                const token = await getToken()
+                await axios.post('/api/cart/update', {cartData}, {headers:{Authorization: `Bearer ${token}`}})
+                toast.success('Item is added to cart')
+            } catch (error) {
+                toast.success(error.message)
+            }
+        } 
+    }
 
     const updateCartQuantity = async (itemId, quantity) => {
         let cartData = structuredClone(cartItems);
@@ -67,8 +90,17 @@ export const AppContextProvider = (props) => {
         } else {
             cartData[itemId] = quantity;
         }
-        setCartItems(cartData);
-    };
+        setCartItems(cartData)
+        if (user) {
+            try {
+                const token = await getToken()
+                await axios.post('/api/cart/update', {cartData}, {headers:{Authorization: `Bearer ${token}`}})
+                toast.success('Cart updated')
+            } catch (error) {
+                toast.success(error.message)
+            }
+        } 
+    }
 
     const getCartCount = () => {
         let totalCount = 0;
@@ -78,7 +110,7 @@ export const AppContextProvider = (props) => {
             }
         }
         return totalCount;
-    };
+    }
 
     const getCartAmount = () => {
         let totalAmount = 0;

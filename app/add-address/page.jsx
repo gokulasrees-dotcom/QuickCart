@@ -4,8 +4,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { useState } from "react";
+import { useAppContext } from "@/context/AppContext";
+import { toast } from "react-toastify"; // ✅ Added this line
+import "react-toastify/dist/ReactToastify.css"; // ✅ Ensure CSS is imported somewhere globally
+
 
 const AddAddress = () => {
+
+    const { getToken, router } = useAppContext()
 
     const [address, setAddress] = useState({
         fullName: '',
@@ -18,7 +24,18 @@ const AddAddress = () => {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
-
+        try {
+           const token = await getToken()
+           const {data} = await axios.post('/api/user/add-address',{address},{headers:{Authorization:`Bearer ${token}`}})
+           if (data.success) {
+                toast.success(data.message)
+                router.push('/cart')
+           } else {
+                toast.error(data.message)
+           }
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
     return (
@@ -76,7 +93,8 @@ const AddAddress = () => {
                             />
                         </div>
                     </div>
-                    <button type="submit" className="max-w-sm w-full mt-6 bg-orange-600 text-white py-3 hover:bg-orange-700 uppercase">
+                    <button
+                     type="submit" className="max-w-sm w-full mt-6 bg-orange-600 text-white py-3 hover:bg-orange-700 uppercase">
                         Save address
                     </button>
                 </form>
